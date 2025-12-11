@@ -1,0 +1,18 @@
+.champ {
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  background: white;
+  color: black;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+
+.champ select, select.champ {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
