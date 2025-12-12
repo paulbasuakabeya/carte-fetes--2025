@@ -175,9 +175,9 @@ export default function App() {
 
         {/* Bloc don sécurisé, court et visible */}
         <div className="mt-4 p-3 bg-green-700 text-white rounded-lg text-sm text-center">
-          ❤️ Soutenez les familles vulnérables : 
+          ❤️ Don ❤️ les familles vulnérables : 
           <a href="tel:+243123456789" className="underline font-bold hover:text-yellow-300">
-            +243 898688469
+            ❤️+243 898688469
           </a>
         </div>
 
