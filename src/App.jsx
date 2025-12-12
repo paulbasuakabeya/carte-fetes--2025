@@ -59,10 +59,10 @@ export default function App() {
     audioNoel.pause();
     audioAnnee.pause();
     if (typeMessage === "noel") {
-      setResultat(`🎄 Joyeux Noël de la part de ${exp} !`);
+      setResultat(`🎄 Joyeux Noël de la part de ${nom} !`);
       forceAutoplay(audioNoel);
     } else {
-      setResultat(`🎉 Bonne Année de la part de ${exp} !`);
+      setResultat(`🎉 Bonne Année de la part de ${nom} !`);
       forceAutoplay(audioAnnee);
     }
     const newURL = `${window.location.origin}?from=${encodeURIComponent(
