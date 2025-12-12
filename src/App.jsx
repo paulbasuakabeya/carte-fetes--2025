@@ -7,6 +7,20 @@ export default function App() {
   const [resultat, setResultat] = useState("");
   const [webviewMessage, setWebviewMessage] = useState("");
 
+  // 👉 Fonction pour forcer l’autoplay sur iPhone / Android / Chrome
+  function forceAutoplay(audio) {
+    audio.volume = 0;
+    audio.muted = true;
+
+    audio.play().then(() => {
+      setTimeout(() => {
+        audio.muted = false;
+        audio.volume = 1;
+        audio.play().catch(() => {});
+      }, 300);
+    }).catch(() => {});
+  }
+
   // 👉 Lien partagé + autoplay
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -23,13 +37,11 @@ export default function App() {
         const audioAnnee = document.getElementById("musiqueAnnee");
 
         if (msgType === "annee") {
-          audioAnnee.muted = false;
-          audioAnnee.play().catch(() => {});
+          forceAutoplay(audioAnnee);
         } else {
-          audioNoel.muted = false;
-          audioNoel.play().catch(() => {});
+          forceAutoplay(audioNoel);
         }
-      }, 500);
+      }, 300);
     }
   }, []);
 
@@ -50,7 +62,7 @@ export default function App() {
     setTimeout(() => snow.remove(), 4000);
   }
 
-  // 🎁 Message + musique
+  // 🎁 Générer message + musique
   function genererMessage() {
     const audioNoel = document.getElementById("musiqueNoel");
     const audioAnnee = document.getElementById("musiqueAnnee");
@@ -60,12 +72,10 @@ export default function App() {
 
     if (typeMessage === "noel") {
       setResultat(`🎄 Joyeux Noël de la part de ${nom} !`);
-      audioNoel.muted = false;
-      audioNoel.play();
+      forceAutoplay(audioNoel);
     } else {
       setResultat(`🎉 Bonne Année de la part de ${nom} !`);
-      audioAnnee.muted = false;
-      audioAnnee.play();
+      forceAutoplay(audioAnnee);
     }
 
     const newURL = `${window.location.origin}?from=${encodeURIComponent(
@@ -75,7 +85,7 @@ export default function App() {
     window.history.pushState({}, "", newURL);
   }
 
-  // 📱 Partage natif + enregistrement backend
+  // 📱 Partage natif + backend
   async function partagerMessage() {
     const url = window.location.href;
 
@@ -84,7 +94,7 @@ export default function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         from: nom,
-        typeMessage: typeMessage,
+        typeMessage,
         app: "native_share",
       }),
     });
@@ -94,11 +104,9 @@ export default function App() {
         await navigator.share({
           title: "Carte de fête 🎁",
           text: "Voici une carte personnalisée 🎄🎉",
-          url: url,
+          url,
         });
-      } catch (err) {
-        console.log("Partage annulé.");
-      }
+      } catch (err) {}
     } else {
       navigator.clipboard.writeText(url);
       alert("Lien copié !");
@@ -113,22 +121,28 @@ export default function App() {
           top: -10px;
           color: white;
           animation: fall linear infinite;
+          z-index: 9999;
         }
         @keyframes fall {
           0% { transform: translateY(0); }
           100% { transform: translateY(110vh); }
         }
+        .champ {
+          width: 100%;
+          margin-top: 10px;
+          padding: 12px;
+          border-radius: 10px;
+          color: black;
+        }
       `}</style>
 
       <div className="bg-white/20 backdrop-blur-lg p-6 rounded-2xl max-w-md shadow-xl">
-
         <h2 className="text-2xl font-bold text-pink-200">
           🎄 Joyeux Noël & 🎉 Bonne Année
         </h2>
 
-        <p className="mt-2">Créer et partager votre carte personnalisée :</p>
+        <p className="mt-2">Partagez votre carte personnalisée :</p>
 
-        {/* Select corrigé */}
         <select
           className="champ"
           value={typeMessage}
@@ -138,7 +152,6 @@ export default function App() {
           <option value="annee">Bonne Année</option>
         </select>
 
-        {/* Input corrigé */}
         <input
           type="text"
           className="champ"
@@ -149,19 +162,17 @@ export default function App() {
 
         <button
           onClick={genererMessage}
-          className="w-full p-3 mt-4 bg-red-600 hover:bg-red-500 rounded-lg"
+          className="w-32 p-3 mt-4 bg-red-600 hover:bg-red-500 rounded-lg"
         >
           Générer
         </button>
 
-        <div className="mt-5 text-lg font-bold min-h-[40px]">
-          {resultat}
-        </div>
+        <div className="mt-5 text-lg font-bold min-h-[40px]">{resultat}</div>
 
         {resultat && (
           <button
             onClick={partagerMessage}
-            className="w-full p-3 mt-2 bg-blue-900 hover:bg-blue-700 rounded-lg"
+            className="p-3 mt-2 bg-blue-900 hover:bg-blue-700 rounded-lg"
           >
             Partager 🎁
           </button>
@@ -173,8 +184,9 @@ export default function App() {
           </div>
         )}
 
-        <audio id="musiqueNoel" src="/noel.mp3" muted></audio>
-        <audio id="musiqueAnnee" src="/bonne_annee.mp3" muted></audio>
+        {/* Musiques */}
+        <audio id="musiqueNoel" src="/noel.mp3"></audio>
+        <audio id="musiqueAnnee" src="/bonne_annee.mp3"></audio>
       </div>
     </div>
   );
@@ -182,9 +194,7 @@ export default function App() {
 
 
 
-
-
-// import './App.css'
+// import "./App.css";
 // import { useEffect, useState } from "react";
 
 // export default function App() {
@@ -204,7 +214,6 @@ export default function App() {
 //       setTypeMessage(msgType || "noel");
 //       setResultat(`Message reçu de ${exp}. Entrez votre nom et renvoyez 🎁`);
 
-//       // 🎵 Auto play musique
 //       setTimeout(() => {
 //         const audioNoel = document.getElementById("musiqueNoel");
 //         const audioAnnee = document.getElementById("musiqueAnnee");
@@ -231,13 +240,13 @@ export default function App() {
 //     snow.className = "snowflake";
 //     snow.innerHTML = "❄";
 //     snow.style.left = Math.random() * window.innerWidth + "px";
-//     snow.style.fontSize = 12 + Math.random() * 20 + "px";
+//     snow.style.fontSize = 12 + Math.random() * 40 + "px";
 //     snow.style.animationDuration = 3 + Math.random() * 5 + "s";
 //     document.body.appendChild(snow);
-//     setTimeout(() => snow.remove(), 8000);
+//     setTimeout(() => snow.remove(), 4000);
 //   }
 
-//   // 🎁 Générer message + musique
+//   // 🎁 Message + musique
 //   function genererMessage() {
 //     const audioNoel = document.getElementById("musiqueNoel");
 //     const audioAnnee = document.getElementById("musiqueAnnee");
@@ -262,66 +271,35 @@ export default function App() {
 //     window.history.pushState({}, "", newURL);
 //   }
 
-//   // 📱 Partage natif (Android / iPhone) – déclenché uniquement sur clic
-//   // async function partagerMessage() {
-//   //   const url = window.location.href;
-
-//   //   if (navigator.share) {
-//   //     try {
-//   //       await navigator.share({
-//   //         title: "Carte de fête 🎁",
-//   //         text: "Voici une carte personnalisée 🎄🎉",
-//   //         url: url,
-//   //       });
-//   //       console.log("Menu de partage ouvert !");
-//   //     } catch (err) {
-//   //       console.log("Partage annulé ou erreur :", err);
-//   //     }
-//   //   } else {
-//   //     // Détecter WebView (Facebook / Instagram)
-//   //     const ua = navigator.userAgent || navigator.vendor || window.opera;
-//   //     if (/FBAN|FBAV|Instagram/.test(ua)) {
-//   //       setWebviewMessage("Pour partager cette carte, ouvrez le lien dans Chrome ou Safari.");
-//   //     } else {
-//   //       // Fallback : copier le lien
-//   //       navigator.clipboard.writeText(url);
-//   //       alert("Lien copié ! Vous pouvez l'envoyer manuellement.");
-//   //     }
-//   //   }
-//   // }
+//   // 📱 Partage natif + enregistrement backend
 //   async function partagerMessage() {
-//   const url = window.location.href;
+//     const url = window.location.href;
 
-//   // Enregistrer dans le backend avant le partage
-//   await fetch("/api/share", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({
-//       from: nom,
-//       typeMessage: typeMessage,
-//       app: "native_share",
-//     }),
-//   });
+//     await fetch("/api/share", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         from: nom,
+//         typeMessage: typeMessage,
+//         app: "native_share",
+//       }),
+//     });
 
-//   // Ouvre le menu de partage natif
-//   if (navigator.share) {
-//     try {
-//       await navigator.share({
-//         title: "Carte de fête 🎁",
-//         text: "Voici une carte personnalisée 🎄🎉",
-//         url: url,
-//       });
-//     } catch (err) {
-//       console.log("Partage annulé.");
+//     if (navigator.share) {
+//       try {
+//         await navigator.share({
+//           title: "Carte de fête 🎁",
+//           text: "Voici une carte personnalisée 🎄🎉",
+//           url: url,
+//         });
+//       } catch (err) {
+//         console.log("Partage annulé.");
+//       }
+//     } else {
+//       navigator.clipboard.writeText(url);
+//       alert("Lien copié !");
 //     }
-//   } else {
-//     navigator.clipboard.writeText(url);
-//     alert("Lien copié !");
 //   }
-//   }
-
 
 //   return (
 //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#0d1b2a] to-[#1b263b] text-white p-4 text-center">
@@ -339,13 +317,16 @@ export default function App() {
 //       `}</style>
 
 //       <div className="bg-white/20 backdrop-blur-lg p-6 rounded-2xl max-w-md shadow-xl">
+
 //         <h2 className="text-2xl font-bold text-pink-200">
 //           🎄 Joyeux Noël & 🎉 Bonne Année
 //         </h2>
-//         <p className="mt-2">Créer et partager votre carte personnalisée :</p>
 
+//         <p className="mt-2">partager votre carte personnalisée :</p>
+
+//         {/* Select corrigé */}
 //         <select
-//           className="w-full p-3 mt-4 rounded-lg text-black"
+//           className="champ"
 //           value={typeMessage}
 //           onChange={(e) => setTypeMessage(e.target.value)}
 //         >
@@ -353,9 +334,10 @@ export default function App() {
 //           <option value="annee">Bonne Année</option>
 //         </select>
 
+//         {/* Input corrigé */}
 //         <input
 //           type="text"
-//           className="w-full p-3 mt-4 rounded-lg text-black"
+//           className="champ"
 //           placeholder="Votre nom (expéditeur)"
 //           value={nom}
 //           onChange={(e) => setNom(e.target.value)}
@@ -363,17 +345,19 @@ export default function App() {
 
 //         <button
 //           onClick={genererMessage}
-//           className="w-full p-3 mt-4 bg-red-600 hover:bg-red-500 rounded-lg"
+//           className="w-32 p-3 mt-4 bg-red-600 hover:bg-red-500 rounded-lg"
 //         >
 //           Générer
 //         </button>
 
-//         <div className="mt-5 text-lg font-bold min-h-[40px]">{resultat}</div>
+//         <div className="mt-5 text-lg font-bold min-h-[40px]">
+//           {resultat}
+//         </div>
 
 //         {resultat && (
 //           <button
 //             onClick={partagerMessage}
-//             className="w-full p-3 mt-2 bg-blue-900 hover:bg-blue-700 rounded-lg"
+//             className="rounded-full  p-3 mt-2 bg-blue-900 hover:bg-blue-700 rounded-lg"
 //           >
 //             Partager 🎁
 //           </button>
@@ -385,7 +369,6 @@ export default function App() {
 //           </div>
 //         )}
 
-//         {/* 🎵 Audios */}
 //         <audio id="musiqueNoel" src="/noel.mp3" muted></audio>
 //         <audio id="musiqueAnnee" src="/bonne_annee.mp3" muted></audio>
 //       </div>
