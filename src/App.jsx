@@ -143,7 +143,7 @@ export default function App() {
                        w-8 h-8 rounded-full
                        flex items-center justify-center shadow-md"
           >
-            ✔
+            Ok
           </button>
         </div>
 
