@@ -28,12 +28,7 @@ export default function App() {
       setExpediteur(from);
       setTypeMessage(msgType || "noel");
 
-      const message =
-        msgType === "annee"
-          ? `🎉 Bonne Année de la part de ${from}`
-          : `🎄 Joyeux Noël de la part de ${from}`;
-
-      setResultat(message);
+      setResultat(from);
 
       setTimeout(() => {
         if (msgType === "annee") {
@@ -71,12 +66,7 @@ export default function App() {
 
     const nomAffiche = nom || expediteur || "🎁";
 
-    const message =
-      typeMessage === "annee"
-        ? `🎉 Bonne Année de la part de ${nomAffiche}`
-        : `🎄 Joyeux Noël de la part de ${nomAffiche}`;
-
-    setResultat(message);
+    setResultat(nomAffiche);
 
     if (typeMessage === "annee") forceAutoplay(audioAnnee);
     else forceAutoplay(audioNoel);
@@ -143,25 +133,33 @@ export default function App() {
           🎶 Écouter
         </button>
 
-        {/* ✨ TEXTE DORÉ ANIMÉ ✨ */}
-        <div className="mt-5 min-h-[70px]">
+        {/* ✨ TEXTE NORMAL + NOM DORE ANIME ✨ */}
+        <div className="mt-5 text-lg font-bold min-h-[60px]">
           {resultat && (
-            <div className="message-anim">
-              {resultat.split("").map((char, index) => (
-                <span
-                  key={index}
-                  className="lettre-doree"
-                  style={{
-                    animationDelay: `${index * 0.15}s`,
-                    "--x": `${Math.random() * 400 - 200}px`,
-                    "--y": `${Math.random() * 300 - 150}px`,
-                    "--r": `${Math.random() * 360}deg`,
-                  }}
-                >
-                  {char === " " ? "\u00A0" : char}
-                </span>
-              ))}
-            </div>
+            <>
+              <div>
+                {typeMessage === "annee"
+                  ? "🎉 Bonne Année de la part de :"
+                  : "🎄 Joyeux Noël de la part de :"}
+              </div>
+
+              <div className="nom-anime">
+                {expediteur.split("").map((lettre, index) => (
+                  <span
+                    key={index}
+                    className="lettre-expediteur"
+                    style={{
+                      animationDelay: `${index * 0.2}s`,
+                      "--x": `${Math.random() * 500 - 250}px`,
+                      "--y": `${Math.random() * 400 - 200}px`,
+                      "--r": `${Math.random() * 360}deg`,
+                    }}
+                  >
+                    {lettre === " " ? "\u00A0" : lettre}
+                  </span>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -178,7 +176,7 @@ export default function App() {
         <audio id="musiqueAnnee" src="/bonne_annee.mp3" />
       </div>
 
-      {/* 🎨 STYLES */}
+      {/* 🎨 STYLES EXISTANTS + NOM DORE ANIME */}
       <style>{`
         .snowflake {
           position: fixed;
@@ -187,9 +185,7 @@ export default function App() {
           animation: fall linear infinite;
           z-index: 9999;
         }
-        @keyframes fall {
-          to { transform: translateY(110vh); }
-        }
+        @keyframes fall { to { transform: translateY(110vh); } }
         .champ {
           width: 100%;
           margin-top: 10px;
@@ -200,29 +196,22 @@ export default function App() {
         .animate-glow {
           animation: glow 2s infinite alternate;
         }
-        @keyframes glow {
-          0% { box-shadow: 0 0 15px gold; }
-          100% { box-shadow: 0 0 30px white; }
-        }
+        @keyframes glow { 0% { box-shadow: 0 0 15px gold; } 100% { box-shadow: 0 0 30px white; } }
 
-        .message-anim {
+        /* ✅ NOM EXPÉDITEUR DORÉ ANIME */
+        .nom-anime { margin-top: 6px; }
+        .lettre-expediteur {
           display: inline-block;
-          text-align: center;
-        }
-
-        .lettre-doree {
-          display: inline-block;
-          font-size: 1.4rem;
+          font-size: 1.6rem;
           font-weight: 900;
-          background: linear-gradient(45deg, #FFD700, #FFF8DC, #FFB700);
+          background: linear-gradient(45deg, #FFD700, #FFF5C2, #FFB700);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           opacity: 0;
-          transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0.2);
-          animation: arrivee 1.8s ease-out forwards;
+          transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0.3);
+          animation: arriveeNom 2.2s ease-out forwards;
         }
-
-        @keyframes arrivee {
+        @keyframes arriveeNom {
           to {
             opacity: 1;
             transform: translate(0, 0) rotate(0deg) scale(1);
