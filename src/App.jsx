@@ -1,5 +1,3 @@
-
-
 import "./App.css";
 import { useEffect, useState } from "react";
 
@@ -10,39 +8,40 @@ export default function App() {
   const [resultat, setResultat] = useState("");
   const [webviewMessage, setWebviewMessage] = useState("");
 
-  // 🟢 Fonction autoplay garantie
+  // 🟢 Fonction autoplay
   function forceAutoplay(audio) {
+    if (!audio) return;
     audio.muted = false;
     audio.volume = 1;
     audio.play().catch(() => {
-      setTimeout(() => {
-        audio.play().catch(() => {});
-      }, 200);
+      setTimeout(() => audio.play().catch(() => {}), 300);
     });
   }
 
-  // 🟢 Autoplay lorsque quelqu’un ouvre le lien
+  // 🟢 Lecture auto quand le lien est ouvert
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("from")) {
-      const exp = params.get("from");
-      const msgType = params.get("msg");
+    const from = params.get("from");
+    const msgType = params.get("msg");
 
-      setExpediteur(exp);
+    if (from) {
+      setExpediteur(from);
       setTypeMessage(msgType || "noel");
 
-      setResultat(
+      const message =
         msgType === "annee"
-          ? `🎉 Bonne Année de la part de ${exp} !`
-          : `🎄 Joyeux Noël de la part de ${exp} !`
-      );
+          ? `🎉 Bonne Année de la part de ${from}`
+          : `🎄 Joyeux Noël de la part de ${from}`;
+
+      setResultat(message);
 
       setTimeout(() => {
-        const audioNoel = document.getElementById("musiqueNoel");
-        const audioAnnee = document.getElementById("musiqueAnnee");
-        if (msgType === "annee") forceAutoplay(audioAnnee);
-        else forceAutoplay(audioNoel);
-      }, 400);
+        if (msgType === "annee") {
+          forceAutoplay(document.getElementById("musiqueAnnee"));
+        } else {
+          forceAutoplay(document.getElementById("musiqueNoel"));
+        }
+      }, 500);
     }
   }, []);
 
@@ -57,10 +56,10 @@ export default function App() {
     snow.className = "snowflake";
     snow.innerHTML = "❄";
     snow.style.left = Math.random() * window.innerWidth + "px";
-    snow.style.fontSize = 12 + Math.random() * 40 + "px";
+    snow.style.fontSize = 12 + Math.random() * 35 + "px";
     snow.style.animationDuration = 3 + Math.random() * 5 + "s";
     document.body.appendChild(snow);
-    setTimeout(() => snow.remove(), 4000);
+    setTimeout(() => snow.remove(), 5000);
   }
 
   // 🎁 Générer message
@@ -70,15 +69,17 @@ export default function App() {
     audioNoel.pause();
     audioAnnee.pause();
 
-    const nomAffiche = nom || expediteur;
+    const nomAffiche = nom || expediteur || "🎁";
 
-    if (typeMessage === "noel") {
-      setResultat(`🎄 Joyeux Noël de la part de ${nomAffiche} !`);
-      forceAutoplay(audioNoel);
-    } else {
-      setResultat(`🎉 Bonne Année de la part de ${nomAffiche} !`);
-      forceAutoplay(audioAnnee);
-    }
+    const message =
+      typeMessage === "annee"
+        ? `🎉 Bonne Année de la part de ${nomAffiche}`
+        : `🎄 Joyeux Noël de la part de ${nomAffiche}`;
+
+    setResultat(message);
+
+    if (typeMessage === "annee") forceAutoplay(audioAnnee);
+    else forceAutoplay(audioNoel);
 
     const newURL = `${window.location.origin}?from=${encodeURIComponent(
       nomAffiche
@@ -86,26 +87,15 @@ export default function App() {
     window.history.pushState({}, "", newURL);
   }
 
-  // 📱 Partager
+  // 📱 Partage
   async function partagerMessage() {
     const url = window.location.href;
-    await fetch("/api/share", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: nom || expediteur,
-        typeMessage,
-        app: "native_share",
-      }),
-    });
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Carte de fête 🎁",
-          text: "Voici une carte personnalisée 🎄🎉",
-          url,
-        });
-      } catch (err) {}
+      await navigator.share({
+        title: "Carte de fête 🎁",
+        text: "Carte personnalisée 🎄🎉",
+        url,
+      });
     } else {
       navigator.clipboard.writeText(url);
       alert("Lien copié !");
@@ -117,41 +107,17 @@ export default function App() {
       className="min-h-screen flex items-center justify-center text-white p-4 text-center bg-cover bg-center bg-no-repeat bg-fixed relative"
       style={{
         backgroundImage: `
-          linear-gradient(to bottom, rgba(13,27,42,0.9), rgba(27,38,59,0.9)),
-          url('/bg1.jpg'),
-          url('/bg2.jpg'),
-          url('/bg3.jpg'),
-          url('/bg4.jpg')
-        `,
+        linear-gradient(to bottom, rgba(13,27,42,0.9), rgba(27,38,59,0.9)),
+        url('/bg1.jpg'),
+        url('/bg2.jpg'),
+        url('/bg3.jpg')
+      `,
       }}
     >
-      {/* Icônes SVG flottantes */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        {[...Array(10)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float ${5 + Math.random() * 5}s ease-in-out infinite`,
-              transform: `rotate(${Math.random() * 360}deg)`,
-            }}
-            dangerouslySetInnerHTML={{
-              __html: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="gold" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="12 2 15 8 22 9 17 14 18 21 12 18 6 21 7 14 2 9 9 8 12 2"></polygon>
-              </svg>`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Carte principale */}
       <div className="bg-white/20 backdrop-blur-lg p-6 rounded-2xl max-w-md shadow-xl relative border-4 border-transparent animate-glow">
         <h2 className="text-2xl font-bold text-pink-200">
           🎄 Joyeux Noël & 🎉 Bonne Année
         </h2>
-        <p className="mt-2">Partagez votre carte personnalisée :</p>
 
         <select
           className="champ"
@@ -172,12 +138,32 @@ export default function App() {
 
         <button
           onClick={genererMessage}
-          className="w-32 p-3 mt-4 bg-red-600 hover:bg-red-500 rounded-lg"
+          className="w-40 p-3 mt-4 bg-red-600 hover:bg-red-500 rounded-lg"
         >
-          Ecouter ici
+          🎶 Écouter
         </button>
 
-        <div className="mt-5 text-lg font-bold min-h-[40px]">{resultat}</div>
+        {/* ✨ TEXTE DORÉ ANIMÉ ✨ */}
+        <div className="mt-5 min-h-[70px]">
+          {resultat && (
+            <div className="message-anim">
+              {resultat.split("").map((char, index) => (
+                <span
+                  key={index}
+                  className="lettre-doree"
+                  style={{
+                    animationDelay: `${index * 0.15}s`,
+                    "--x": `${Math.random() * 400 - 200}px`,
+                    "--y": `${Math.random() * 300 - 150}px`,
+                    "--r": `${Math.random() * 360}deg`,
+                  }}
+                >
+                  {char === " " ? "\u00A0" : char}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
         {resultat && (
           <button
@@ -188,28 +174,11 @@ export default function App() {
           </button>
         )}
 
-        {/* Bloc don sécurisé */}
-        <div className="mt-4 p-3 bg-green-700 text-white rounded-lg text-sm text-center">
-          ❤️ Don ❤️ les familles vulnérables :
-          <a
-            href="tel:+243898688469"
-            className="underline font-bold hover:text-yellow-300"
-          >
-            ❤️+243 898688469
-          </a>
-        </div>
-
-        {webviewMessage && (
-          <div className="mt-3 p-3 bg-yellow-600 text-black rounded-lg text-sm">
-            {webviewMessage}
-          </div>
-        )}
-
-        <audio id="musiqueNoel" src="/noel.mp3"></audio>
-        <audio id="musiqueAnnee" src="/bonne_annee.mp3"></audio>
+        <audio id="musiqueNoel" src="/noel.mp3" />
+        <audio id="musiqueAnnee" src="/bonne_annee.mp3" />
       </div>
 
-      {/* Styles supplémentaires — IDENTIQUES */}
+      {/* 🎨 STYLES */}
       <style>{`
         .snowflake {
           position: fixed;
@@ -219,8 +188,7 @@ export default function App() {
           z-index: 9999;
         }
         @keyframes fall {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(110vh); }
+          to { transform: translateY(110vh); }
         }
         .champ {
           width: 100%;
@@ -229,21 +197,289 @@ export default function App() {
           border-radius: 10px;
           color: black;
         }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-30px) rotate(180deg); }
-        }
-        @keyframes glow {
-          0%, 100% { box-shadow: 0 0 20px 5px rgba(255, 200, 0, 0.6); }
-          50% { box-shadow: 0 0 30px 15px rgba(255, 255, 255, 0.9); }
-        }
         .animate-glow {
           animation: glow 2s infinite alternate;
+        }
+        @keyframes glow {
+          0% { box-shadow: 0 0 15px gold; }
+          100% { box-shadow: 0 0 30px white; }
+        }
+
+        .message-anim {
+          display: inline-block;
+          text-align: center;
+        }
+
+        .lettre-doree {
+          display: inline-block;
+          font-size: 1.4rem;
+          font-weight: 900;
+          background: linear-gradient(45deg, #FFD700, #FFF8DC, #FFB700);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          opacity: 0;
+          transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0.2);
+          animation: arrivee 1.8s ease-out forwards;
+        }
+
+        @keyframes arrivee {
+          to {
+            opacity: 1;
+            transform: translate(0, 0) rotate(0deg) scale(1);
+          }
         }
       `}</style>
     </div>
   );
 }
+
+
+
+
+// import "./App.css";
+// import { useEffect, useState } from "react";
+
+// export default function App() {
+//   const [nom, setNom] = useState("");
+//   const [expediteur, setExpediteur] = useState("");
+//   const [typeMessage, setTypeMessage] = useState("noel");
+//   const [resultat, setResultat] = useState("");
+//   const [webviewMessage, setWebviewMessage] = useState("");
+
+//   // 🟢 Fonction autoplay garantie
+//   function forceAutoplay(audio) {
+//     audio.muted = false;
+//     audio.volume = 1;
+//     audio.play().catch(() => {
+//       setTimeout(() => {
+//         audio.play().catch(() => {});
+//       }, 200);
+//     });
+//   }
+
+//   // 🟢 Autoplay lorsque quelqu’un ouvre le lien
+//   useEffect(() => {
+//     const params = new URLSearchParams(window.location.search);
+//     if (params.get("from")) {
+//       const exp = params.get("from");
+//       const msgType = params.get("msg");
+
+//       setExpediteur(exp);
+//       setTypeMessage(msgType || "noel");
+
+//       setResultat(
+//         msgType === "annee"
+//           ? `🎉 Bonne Année de la part de ${exp} !`
+//           : `🎄 Joyeux Noël de la part de ${exp} !`
+//       );
+
+//       setTimeout(() => {
+//         const audioNoel = document.getElementById("musiqueNoel");
+//         const audioAnnee = document.getElementById("musiqueAnnee");
+//         if (msgType === "annee") forceAutoplay(audioAnnee);
+//         else forceAutoplay(audioNoel);
+//       }, 400);
+//     }
+//   }, []);
+
+//   // ❄️ Neige
+//   useEffect(() => {
+//     const interval = setInterval(createSnow, 200);
+//     return () => clearInterval(interval);
+//   }, []);
+
+//   function createSnow() {
+//     const snow = document.createElement("div");
+//     snow.className = "snowflake";
+//     snow.innerHTML = "❄";
+//     snow.style.left = Math.random() * window.innerWidth + "px";
+//     snow.style.fontSize = 12 + Math.random() * 40 + "px";
+//     snow.style.animationDuration = 3 + Math.random() * 5 + "s";
+//     document.body.appendChild(snow);
+//     setTimeout(() => snow.remove(), 4000);
+//   }
+
+//   // 🎁 Générer message
+//   function genererMessage() {
+//     const audioNoel = document.getElementById("musiqueNoel");
+//     const audioAnnee = document.getElementById("musiqueAnnee");
+//     audioNoel.pause();
+//     audioAnnee.pause();
+
+//     const nomAffiche = nom || expediteur;
+
+//     if (typeMessage === "noel") {
+//       setResultat(`🎄 Joyeux Noël de la part de ${nomAffiche} !`);
+//       forceAutoplay(audioNoel);
+//     } else {
+//       setResultat(`🎉 Bonne Année de la part de ${nomAffiche} !`);
+//       forceAutoplay(audioAnnee);
+//     }
+
+//     const newURL = `${window.location.origin}?from=${encodeURIComponent(
+//       nomAffiche
+//     )}&msg=${typeMessage}`;
+//     window.history.pushState({}, "", newURL);
+//   }
+
+//   // 📱 Partager
+//   async function partagerMessage() {
+//     const url = window.location.href;
+//     await fetch("/api/share", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         from: nom || expediteur,
+//         typeMessage,
+//         app: "native_share",
+//       }),
+//     });
+//     if (navigator.share) {
+//       try {
+//         await navigator.share({
+//           title: "Carte de fête 🎁",
+//           text: "Voici une carte personnalisée 🎄🎉",
+//           url,
+//         });
+//       } catch (err) {}
+//     } else {
+//       navigator.clipboard.writeText(url);
+//       alert("Lien copié !");
+//     }
+//   }
+
+//   return (
+//     <div
+//       className="min-h-screen flex items-center justify-center text-white p-4 text-center bg-cover bg-center bg-no-repeat bg-fixed relative"
+//       style={{
+//         backgroundImage: `
+//           linear-gradient(to bottom, rgba(13,27,42,0.9), rgba(27,38,59,0.9)),
+//           url('/bg1.jpg'),
+//           url('/bg2.jpg'),
+//           url('/bg3.jpg'),
+//           url('/bg4.jpg')
+//         `,
+//       }}
+//     >
+//       {/* Icônes SVG flottantes */}
+//       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+//         {[...Array(10)].map((_, i) => (
+//           <div
+//             key={i}
+//             className="absolute"
+//             style={{
+//               left: `${Math.random() * 100}%`,
+//               top: `${Math.random() * 100}%`,
+//               animation: `float ${5 + Math.random() * 5}s ease-in-out infinite`,
+//               transform: `rotate(${Math.random() * 360}deg)`,
+//             }}
+//             dangerouslySetInnerHTML={{
+//               __html: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="gold" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+//                 <polygon points="12 2 15 8 22 9 17 14 18 21 12 18 6 21 7 14 2 9 9 8 12 2"></polygon>
+//               </svg>`,
+//             }}
+//           />
+//         ))}
+//       </div>
+
+//       {/* Carte principale */}
+//       <div className="bg-white/20 backdrop-blur-lg p-6 rounded-2xl max-w-md shadow-xl relative border-4 border-transparent animate-glow">
+//         <h2 className="text-2xl font-bold text-pink-200">
+//           🎄 Joyeux Noël & 🎉 Bonne Année
+//         </h2>
+//         <p className="mt-2">Partagez votre carte personnalisée :</p>
+
+//         <select
+//           className="champ"
+//           value={typeMessage}
+//           onChange={(e) => setTypeMessage(e.target.value)}
+//         >
+//           <option value="noel">Joyeux Noël</option>
+//           <option value="annee">Bonne Année</option>
+//         </select>
+
+//         <input
+//           type="text"
+//           className="champ"
+//           placeholder="Votre nom (expéditeur)"
+//           value={nom}
+//           onChange={(e) => setNom(e.target.value)}
+//         />
+
+//         <button
+//           onClick={genererMessage}
+//           className="w-32 p-3 mt-4 bg-red-600 hover:bg-red-500 rounded-lg"
+//         >
+//           Ecouter ici
+//         </button>
+
+//         <div className="mt-5 text-lg font-bold min-h-[40px]">{resultat}</div>
+
+//         {resultat && (
+//           <button
+//             onClick={partagerMessage}
+//             className="p-3 mt-2 bg-blue-900 hover:bg-blue-700 rounded-lg"
+//           >
+//             Partager 🎁
+//           </button>
+//         )}
+
+//         {/* Bloc don sécurisé */}
+//         <div className="mt-4 p-3 bg-green-700 text-white rounded-lg text-sm text-center">
+//           ❤️ Don ❤️ les familles vulnérables :
+//           <a
+//             href="tel:+243898688469"
+//             className="underline font-bold hover:text-yellow-300"
+//           >
+//             ❤️+243 898688469
+//           </a>
+//         </div>
+
+//         {webviewMessage && (
+//           <div className="mt-3 p-3 bg-yellow-600 text-black rounded-lg text-sm">
+//             {webviewMessage}
+//           </div>
+//         )}
+
+//         <audio id="musiqueNoel" src="/noel.mp3"></audio>
+//         <audio id="musiqueAnnee" src="/bonne_annee.mp3"></audio>
+//       </div>
+
+//       {/* Styles supplémentaires — IDENTIQUES */}
+//       <style>{`
+//         .snowflake {
+//           position: fixed;
+//           top: -10px;
+//           color: white;
+//           animation: fall linear infinite;
+//           z-index: 9999;
+//         }
+//         @keyframes fall {
+//           0% { transform: translateY(0); }
+//           100% { transform: translateY(110vh); }
+//         }
+//         .champ {
+//           width: 100%;
+//           margin-top: 10px;
+//           padding: 12px;
+//           border-radius: 10px;
+//           color: black;
+//         }
+//         @keyframes float {
+//           0%, 100% { transform: translateY(0px) rotate(0deg); }
+//           50% { transform: translateY(-30px) rotate(180deg); }
+//         }
+//         @keyframes glow {
+//           0%, 100% { box-shadow: 0 0 20px 5px rgba(255, 200, 0, 0.6); }
+//           50% { box-shadow: 0 0 30px 15px rgba(255, 255, 255, 0.9); }
+//         }
+//         .animate-glow {
+//           animation: glow 2s infinite alternate;
+//         }
+//       `}</style>
+//     </div>
+//   );
+// }
 
 
 // import "./App.css";
