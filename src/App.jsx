@@ -553,7 +553,7 @@ export default function App() {
         )}
 
         <div className="mt-4 p-3 bg-green-700 rounded-lg text-sm">
-          ❤️ Don pour les familles vulnérables❤️ :
+          ❤️ Don aux familles vulnérables❤️ :
           <div>
             <a
               href="tel:+243898688469"
