@@ -16,3 +16,99 @@
   -moz-appearance: none;
   appearance: none;
 }
+
+
+/* Flocons de neige */
+.snowflake {
+  position: fixed;
+  top: -10px;
+  color: white;
+  animation: fall linear infinite;
+  z-index: 9999;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(110vh);
+  }
+}
+
+/* Champs de saisie */
+.champ {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  color: black;
+}
+
+/* Effet glow pour la carte */
+.animate-glow {
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 15px gold;
+  }
+  100% {
+    box-shadow: 0 0 30px white;
+  }
+}
+
+/* Animation du nom */
+.nom-anime {
+  margin-top: 6px;
+}
+
+.lettre-expediteur {
+  display: inline-block;
+  font-size: 1.6rem;
+  font-weight: 900;
+  background: linear-gradient(45deg, #FFD700, #FFF5C2, #FFB700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0;
+  transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0.3);
+  animation: arriveeNom 2.2s ease-out forwards;
+}
+
+@keyframes arriveeNom {
+  0% {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0.3);
+  }
+  80% {
+    transform: translate(0, 0) rotate(0deg) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+}
+
+/* Boutons */
+button {
+  cursor: pointer;
+}
+
+/* Cartes et containers */
+.bg-white\/20 {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.backdrop-blur-lg {
+  backdrop-filter: blur(10px);
+}
+
+.shadow-xl {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.rounded-2xl {
+  border-radius: 1rem;
+}
+
+.text-white {
+  color: white;
+}
