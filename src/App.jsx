@@ -10,6 +10,7 @@ export default function App() {
   const [resultat, setResultat] = useState("");
   const [partages, setPartages] = useState(0);
 
+  // 🔊 Autoplay sécurisé
   function forceAutoplay(audio) {
     if (!audio) return;
     audio.muted = false;
@@ -17,6 +18,7 @@ export default function App() {
     audio.play().catch(() => {});
   }
 
+  // 🔗 Lecture auto quand lien est ouvert
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const from = params.get("from");
@@ -32,25 +34,22 @@ export default function App() {
           msgType === "annee"
             ? document.getElementById("musiqueAnnee")
             : document.getElementById("musiqueNoel");
-
         forceAutoplay(audio);
       }, 500);
     }
   }, []);
 
+  // 🔓 Débloque autoplay au premier clic/touch
   useEffect(() => {
     function unlockAudio() {
       const audio =
         typeMessage === "annee"
           ? document.getElementById("musiqueAnnee")
           : document.getElementById("musiqueNoel");
-
       forceAutoplay(audio);
-
       document.removeEventListener("click", unlockAudio);
       document.removeEventListener("touchstart", unlockAudio);
     }
-
     document.addEventListener("click", unlockAudio);
     document.addEventListener("touchstart", unlockAudio);
 
@@ -60,7 +59,7 @@ export default function App() {
     };
   }, [typeMessage]);
 
-  // ❄️ Neige
+  // ❄️ Neige de base
   useEffect(() => {
     const interval = setInterval(() => {
       const snow = document.createElement("div");
@@ -101,6 +100,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [typeMessage]);
 
+  // 🔢 Charger compteur global depuis Firebase
   useEffect(() => {
     async function loadPartages() {
       const docRef = doc(db, "stats", "partages");
@@ -115,6 +115,7 @@ export default function App() {
     loadPartages();
   }, []);
 
+  // ✅ Valider nom
   function validerNom() {
     if (!nom.trim()) return;
     setExpediteur(nom);
@@ -126,6 +127,7 @@ export default function App() {
     window.history.pushState({}, "", newURL);
   }
 
+  // 🎶 Écouter musique
   function ecouterMusique() {
     const audioNoel = document.getElementById("musiqueNoel");
     const audioAnnee = document.getElementById("musiqueAnnee");
@@ -138,15 +140,18 @@ export default function App() {
       : forceAutoplay(audioNoel);
   }
 
+  // 📤 Partager et incrémenter Firebase (correction)
   async function partagerMessage() {
     const url = window.location.href;
-
     const docRef = doc(db, "stats", "partages");
-    await updateDoc(docRef, { count: increment(1) });
+
+    // Crée ou incrémente le compteur
+    await setDoc(docRef, { count: increment(1) }, { merge: true });
 
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) setPartages(docSnap.data().count);
 
+    // Partage ou copie
     if (navigator.share) {
       await navigator.share({
         title: "Carte de fête 🎁",
@@ -249,7 +254,7 @@ export default function App() {
               Partager 🎁
             </button>
             <div className="mt-2 text-sm text-yellow-300">
-              🔢 100 {partages} fois !
+              🔢 Ce lien a été partagé {partages} fois !
             </div>
           </>
         )}
@@ -272,6 +277,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 // import "./App.css";
