@@ -1,6 +1,6 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import { collection, doc, getDoc, setDoc, updateDoc, increment } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, increment } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 
 export default function App() {
@@ -9,8 +9,8 @@ export default function App() {
   const [typeMessage, setTypeMessage] = useState("noel");
   const [resultat, setResultat] = useState("");
   const [partages, setPartages] = useState(0);
+  const [showModal, setShowModal] = useState(false); // Modal pour copier lien
 
-  // 🔊 Autoplay sécurisé
   function forceAutoplay(audio) {
     if (!audio) return;
     audio.muted = false;
@@ -18,7 +18,6 @@ export default function App() {
     audio.play().catch(() => {});
   }
 
-  // 🔗 Lecture auto quand lien est ouvert
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const from = params.get("from");
@@ -39,7 +38,6 @@ export default function App() {
     }
   }, []);
 
-  // 🔓 Débloque autoplay au premier clic/touch
   useEffect(() => {
     function unlockAudio() {
       const audio =
@@ -52,7 +50,6 @@ export default function App() {
     }
     document.addEventListener("click", unlockAudio);
     document.addEventListener("touchstart", unlockAudio);
-
     return () => {
       document.removeEventListener("click", unlockAudio);
       document.removeEventListener("touchstart", unlockAudio);
@@ -79,7 +76,6 @@ export default function App() {
     const interval = setInterval(() => {
       const el = document.createElement("div");
       el.className = "snowflake";
-
       if (typeMessage === "annee") {
         el.innerHTML = "2026";
         el.style.fontWeight = "900";
@@ -92,7 +88,6 @@ export default function App() {
         el.style.fontSize = 20 + Math.random() * 20 + "px";
         el.style.animationDuration = 6 + Math.random() * 6 + "s"; 
       }
-
       el.style.left = Math.random() * window.innerWidth + "px";
       document.body.appendChild(el);
       setTimeout(() => el.remove(), 7000);
@@ -115,43 +110,36 @@ export default function App() {
     loadPartages();
   }, []);
 
-  // ✅ Valider nom
   function validerNom() {
     if (!nom.trim()) return;
     setExpediteur(nom);
     setResultat(nom);
-
     const newURL = `${window.location.origin}?from=${encodeURIComponent(
       nom
     )}&msg=${typeMessage}`;
     window.history.pushState({}, "", newURL);
   }
 
-  // 🎶 Écouter musique
   function ecouterMusique() {
     const audioNoel = document.getElementById("musiqueNoel");
     const audioAnnee = document.getElementById("musiqueAnnee");
-
     audioNoel.pause();
     audioAnnee.pause();
-
     typeMessage === "annee"
       ? forceAutoplay(audioAnnee)
       : forceAutoplay(audioNoel);
   }
 
-  // 📤 Partager et incrémenter Firebase (correction)
   async function partagerMessage() {
     const url = window.location.href;
     const docRef = doc(db, "stats", "partages");
 
     // Crée ou incrémente le compteur
     await setDoc(docRef, { count: increment(1) }, { merge: true });
-
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) setPartages(docSnap.data().count);
 
-    // Partage ou copie
+    // Partage natif sur mobile
     if (navigator.share) {
       await navigator.share({
         title: "Carte de fête 🎁",
@@ -159,8 +147,8 @@ export default function App() {
         url,
       });
     } else {
-      navigator.clipboard.writeText(url);
-      alert("Lien copié !");
+      // Sur PC, afficher modal avec lien à copier
+      setShowModal(true);
     }
   }
 
@@ -274,6 +262,38 @@ export default function App() {
         <audio id="musiqueNoel" src="/noel.mp3" />
         <audio id="musiqueAnnee" src="/bonne_annee.mp3" />
       </div>
+
+      {/* Modal copier lien pour PC */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white text-black p-6 rounded-lg max-w-sm text-center">
+            <p className="mb-2 font-bold">Copiez ce lien pour partager :</p>
+            <input
+              type="text"
+              readOnly
+              value={window.location.href}
+              className="w-full p-2 border rounded mb-4"
+              onClick={(e) => e.target.select()}
+            />
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500"
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Lien copié !");
+                setShowModal(false);
+              }}
+            >
+              Copier
+            </button>
+            <button
+              className="px-4 py-2 ml-2 bg-gray-400 text-white rounded hover:bg-gray-300"
+              onClick={() => setShowModal(false)}
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
