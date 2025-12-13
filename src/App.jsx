@@ -9,7 +9,7 @@ export default function App() {
   const [typeMessage, setTypeMessage] = useState("noel");
   const [resultat, setResultat] = useState("");
   const [partages, setPartages] = useState(0);
-  const [showModal, setShowModal] = useState(false); // Modal pour copier lien
+  const [showModal, setShowModal] = useState(false);
 
   function forceAutoplay(audio) {
     if (!audio) return;
@@ -18,6 +18,7 @@ export default function App() {
     audio.play().catch(() => {});
   }
 
+  // Lecture auto via URL params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const from = params.get("from");
@@ -38,6 +39,7 @@ export default function App() {
     }
   }, []);
 
+  // Débloque autoplay au premier clic/touch
   useEffect(() => {
     function unlockAudio() {
       const audio =
@@ -56,7 +58,7 @@ export default function App() {
     };
   }, [typeMessage]);
 
-  // ❄️ Neige de base
+  // ❄️ Neige
   useEffect(() => {
     const interval = setInterval(() => {
       const snow = document.createElement("div");
@@ -71,7 +73,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🎄🎉 Sapins ou 2026
+  // 🎄 Sapins ou 2026
   useEffect(() => {
     const interval = setInterval(() => {
       const el = document.createElement("div");
@@ -86,7 +88,7 @@ export default function App() {
       } else {
         el.innerHTML = "🎄";
         el.style.fontSize = 20 + Math.random() * 20 + "px";
-        el.style.animationDuration = 6 + Math.random() * 6 + "s"; 
+        el.style.animationDuration = 6 + Math.random() * 6 + "s";
       }
       el.style.left = Math.random() * window.innerWidth + "px";
       document.body.appendChild(el);
@@ -95,7 +97,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [typeMessage]);
 
-  // 🔢 Charger compteur global depuis Firebase
+  // 🔢 Charger compteur Firebase
   useEffect(() => {
     async function loadPartages() {
       const docRef = doc(db, "stats", "partages");
@@ -110,6 +112,7 @@ export default function App() {
     loadPartages();
   }, []);
 
+  // Valider nom
   function validerNom() {
     if (!nom.trim()) return;
     setExpediteur(nom);
@@ -120,34 +123,37 @@ export default function App() {
     window.history.pushState({}, "", newURL);
   }
 
+  // 🎶 Écouter musique
   function ecouterMusique() {
     const audioNoel = document.getElementById("musiqueNoel");
     const audioAnnee = document.getElementById("musiqueAnnee");
     audioNoel.pause();
     audioAnnee.pause();
-    typeMessage === "annee"
-      ? forceAutoplay(audioAnnee)
-      : forceAutoplay(audioNoel);
+    typeMessage === "annee" ? forceAutoplay(audioAnnee) : forceAutoplay(audioNoel);
   }
 
+  // 📤 Partager message
   async function partagerMessage() {
     const url = window.location.href;
     const docRef = doc(db, "stats", "partages");
 
-    // Crée ou incrémente le compteur
+    // Incrémente compteur
     await setDoc(docRef, { count: increment(1) }, { merge: true });
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) setPartages(docSnap.data().count);
 
-    // Partage natif sur mobile
     if (navigator.share) {
-      await navigator.share({
-        title: "Carte de fête 🎁",
-        text: `Carte personnalisée de ${expediteur} 🎄🎉`,
-        url,
-      });
+      try {
+        await navigator.share({
+          title: "Carte de fête 🎁",
+          text: `Carte personnalisée de ${expediteur} 🎄🎉`,
+          url,
+        });
+      } catch (err) {
+        // Si échec (ex: annulation), fallback modal
+        setShowModal(true);
+      }
     } else {
-      // Sur PC, afficher modal avec lien à copier
       setShowModal(true);
     }
   }
@@ -263,7 +269,7 @@ export default function App() {
         <audio id="musiqueAnnee" src="/bonne_annee.mp3" />
       </div>
 
-      {/* Modal copier lien pour PC */}
+      {/* Modal copier lien pour desktop */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white text-black p-6 rounded-lg max-w-sm text-center">
@@ -297,6 +303,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
