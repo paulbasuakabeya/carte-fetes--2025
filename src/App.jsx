@@ -20,16 +20,17 @@ export default function App() {
       index = (index + 1) % messagesDon.length;
       setTexteDon(messagesDon[index]);
     }, 4000);
-
     return () => clearInterval(interval);
   }, []);
 
   // 🔊 Autoplay sécurisé
   function forceAutoplay(audio) {
     if (!audio) return;
-    audio.muted = false;
-    audio.volume = 1;
-    audio.play().catch(() => {});
+    audio.muted = true;
+    audio.play().then(() => {
+      audio.muted = false;
+      audio.volume = 1;
+    }).catch(() => {});
   }
 
   // 🔗 Lecture auto quand lien est ouvert
@@ -48,7 +49,6 @@ export default function App() {
           msgType === "annee"
             ? document.getElementById("musiqueAnnee")
             : document.getElementById("musiqueNoel");
-
         forceAutoplay(audio);
       }, 500);
     }
@@ -77,23 +77,23 @@ export default function App() {
     };
   }, [typeMessage]);
 
-  // ❄️ Neige de base
+  // ❄️ Neige optimisée
   useEffect(() => {
     const interval = setInterval(() => {
       const snow = document.createElement("div");
       snow.className = "snowflake";
       snow.innerHTML = "❄";
       snow.style.left = Math.random() * window.innerWidth + "px";
-      snow.style.fontSize = 12 + Math.random() * 40 + "px";
-      snow.style.animationDuration = 3 + Math.random() * 5 + "s";
+      snow.style.fontSize = 10 + Math.random() * 25 + "px";
+      snow.style.animationDuration = 4 + Math.random() * 4 + "s";
       document.body.appendChild(snow);
-      setTimeout(() => snow.remove(), 5000);
-    }, 200);
+      setTimeout(() => snow.remove(), 4000);
+    }, 400);
 
     return () => clearInterval(interval);
   }, []);
 
-  // 🎄🎉 Sapins / 2026
+  // 🎄🎉 Sapins / 2026 optimisés
   useEffect(() => {
     const interval = setInterval(() => {
       const el = document.createElement("div");
@@ -105,16 +105,18 @@ export default function App() {
         el.style.color = "#FFD700";
         el.style.textShadow =
           "0 0 8px #FFF, 0 0 15px #FFD700, 0 0 20px #FFF5C2";
+        el.style.fontSize = 18 + Math.random() * 12 + "px";
+        el.style.animationDuration = 5 + Math.random() * 3 + "s";
       } else {
         el.innerHTML = "🎄";
-        el.style.fontSize = 20 + Math.random() * 20 + "px";
-        el.style.animationDuration = 6 + Math.random() * 6 + "s";
+        el.style.fontSize = 18 + Math.random() * 18 + "px";
+        el.style.animationDuration = 5 + Math.random() * 5 + "s";
       }
 
       el.style.left = Math.random() * window.innerWidth + "px";
       document.body.appendChild(el);
-      setTimeout(() => el.remove(), 7000);
-    }, 400);
+      setTimeout(() => el.remove(), 6000);
+    }, 600);
 
     return () => clearInterval(interval);
   }, [typeMessage]);
@@ -158,6 +160,7 @@ export default function App() {
   }
 
   const nomAAfficher = resultat || expediteur;
+  const maxLetters = 20; // Limite lettres animées pour mobile
 
   return (
     <div
@@ -165,14 +168,11 @@ export default function App() {
       style={{
         backgroundImage: `
         linear-gradient(to bottom, rgba(13,27,42,0.9), rgba(27,38,59,0.9)),
-        url('/bg1.jpg'),
-        url('/bg2.jpg'),
-        url('/bg3.jpg')
+        url('/bg1.jpg')
       `,
       }}
     >
       <div className="bg-white/20 backdrop-blur-lg p-6 rounded-2xl max-w-md shadow-xl relative border-4 border-transparent animate-glow">
-
         <h2 className="text-2xl font-bold text-pink-200">
           🎄 Joyeux Noël & 🎉 Bonne Année
         </h2>
@@ -224,20 +224,23 @@ export default function App() {
                   : "🎄 Joyeux Noël de la part de :"}
               </div>
               <div className="nom-anime">
-                {nomAAfficher.split("").map((lettre, i) => (
-                  <span
-                    key={i}
-                    className="lettre-expediteur"
-                    style={{
-                      animationDelay: `${i * 0.2}s`,
-                      "--x": `${Math.random() * 500 - 250}px`,
-                      "--y": `${Math.random() * 400 - 200}px`,
-                      "--r": `${Math.random() * 360}deg`,
-                    }}
-                  >
-                    {lettre === " " ? "\u00A0" : lettre}
-                  </span>
-                ))}
+                {nomAAfficher
+                  .slice(0, maxLetters)
+                  .split("")
+                  .map((lettre, i) => (
+                    <span
+                      key={i}
+                      className="lettre-expediteur"
+                      style={{
+                        animationDelay: `${i * 0.2}s`,
+                        "--x": `${Math.random() * 500 - 250}px`,
+                        "--y": `${Math.random() * 400 - 200}px`,
+                        "--r": `${Math.random() * 360}deg`,
+                      }}
+                    >
+                      {lettre === " " ? "\u00A0" : lettre}
+                    </span>
+                  ))}
               </div>
             </>
           )}
@@ -269,7 +272,7 @@ export default function App() {
         <audio id="musiqueAnnee" src="/bonne_annee.mp3" />
       </div>
 
-      {/* 🎨 CSS Tel qu'il était */}
+      {/* 🎨 CSS */}
       <style>{`
         .snowflake {
           position: fixed;
@@ -324,7 +327,6 @@ export default function App() {
     </div>
   );
 }
-
 
 
 
